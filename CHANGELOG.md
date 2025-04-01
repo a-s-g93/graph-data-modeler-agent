@@ -1,17 +1,11 @@
-# @a-s-g93/neo4j-runway
+# @a-s-g93/graph-data-modeler-agent
+
 
 ## Next
 
-### Fixed
+Refactor code from neo4j-runway repo into agentic workflow for graph data modeling.
 
-### Changed
-
-* Deprecating `user_input` args and `UserInput` object. The resposibilities of these are handled by `TableCollection` and `DataDictionary`
-* Removed integration tests that required connection to LLM endpoints
-
-### Added
-
-* Data dictionaries are now held in a `DataDictionary` object allowing for advanced validation and better integrations throughout the code base
+---
 
 ## 0.14.0
 

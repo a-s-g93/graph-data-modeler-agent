@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "neo4j-runway"
-version = "0.14.0"
-description = "A Python library that contains tools for data discovery, data model generation and ingestion for the Neo4j graph database."
+name = "graph-data-modeler-agent"
+version = "0.1.0"
+description = "An agent that is capable of generating graph data models from structured data."
 authors = ["Alex Gilmore", "Jason Booth", "Dan Bukowski"]
 license = "Apache License, Version 2.0"
 readme = "README.md"
-keywords = ["graph", "neo4j", "data model"]
+keywords = ["graph", "data model"]
 classifiers = [
     "Development Status :: 4 - Beta",
     'Intended Audience :: Developers',
@@ -17,9 +17,7 @@ classifiers = [
     "Topic :: Database",
 ]
 exclude = ["tests/*", "images/*", "test.ipynb", "data/", "Makefile", "scripts/*", "notebooks/*"]
-
-[[tool.poetry.packages]]
-include = "neo4j_runway"
+package-mode = false
 
 [tool.poetry.dependencies]
 graphviz = "^0.20.1"
@@ -55,14 +53,13 @@ strict = true
 ignore_missing_imports = true
 allow_subclassing_any = true
 disallow_untyped_calls = false
-exclude = ["docs", "tests", "scripts", "neo4j_runway/code_generation/generate_ingest.py", "neo4j_runway/llm/base.py"]
-
+exclude = ["neo4j_runway/"]
 [tool.ruff]
 target-version = "py310"
 show-fixes = true
 
 [tool.coverage.paths]
-source = ["neo4j_runway"]
+source = ["graph_data_modeler_agent"]
 
 [build-system]
 requires = ["poetry-core"]
