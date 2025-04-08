@@ -15,39 +15,35 @@ def create_generate_data_model_single_source_messages(
 
     user_message = """I would like you to generate a graph data model based on this provided information. Ensure that the recommended nodes are implemented in the final data model.
 
-<rules>
-{rules}
-</rules>
+---
 
-<valid columns>
+**Valid Columns**
 {valid_columns}
-</valid columns>
 
-<column descriptions>
+**Column Descriptions**
 {column_descriptions}
-</column descriptions>
 
-<use cases>
+**Use Cases**
 {use_cases}
-</use cases>
 
-<discovery>
+**Discovery Summary**
 {discovery}
-</discovery>
 
-<nodes>
+**Nodes**
 {nodes}
-</nodes>
 
-<possible relationships>
+**Possible Relationships**
 {possible_relationships}
-</possible relationships>
 
-<possible property keys>
+**Possible Property Keys**
 {possible_property_keys}
-</possible property keys>
 
-Please return your response in json format.
+--- 
+
+**Rules**
+{rules}
+
+
 Data Model:
 """
 
@@ -64,7 +60,7 @@ Data Model:
                 nodes=state["initial_nodes"],
                 possible_relationships=state["discovery"].possible_relationship_types,
                 possible_property_keys=state["discovery"].possible_property_keys,
-                discovery=state["discovery"],
+                discovery=state["discovery"].summary,
             ),
         },
     ]
@@ -87,18 +83,19 @@ def _format_rules(context: GenerateDataModelContext) -> str:
 
     rules = """
 Please follow these rules strictly! Billions of dollars depend on you.
+
+** Do not modify the provided nodes. **
+
 Nodes
 * Each node must have a unique property
-* Each node must have a relationship with at least one other node
-* Unique properties may NOT be shared between different nodes
-* A node must only have a single ID property
+* Unique properties may be used only once per data model
+* Do not group all properties into a single node
 Relationships
 * Relationships do NOT require uniqueness or properties
 * NEVER use symmetric relationships
 * Do NOT create self-referential relationships
 Properties
 * A column_mapping must be an exact match to valid column
-* A column_mapping may only be used ONCE in a data model. It may NOT be shared between nodes
 General
 * Do NOT return a single-node data model"""
 

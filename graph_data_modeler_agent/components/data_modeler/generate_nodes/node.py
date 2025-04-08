@@ -33,7 +33,10 @@ def create_generate_nodes_single_source_node(
             table_schema=state["table_schema"],
             valid_sources=[state["table_schema"].name],
             valid_columns=state["table_schema"].column_names,
-            allow_duplicate_column_mappings=True,
+            table_column_listings={
+                state["table_schema"].name: state["table_schema"].column_names
+            },
+            allow_duplicate_column_mappings=False,
             enforce_uniqueness=True,
             apply_neo4j_naming_conventions=True,
         )
@@ -42,7 +45,12 @@ def create_generate_nodes_single_source_node(
 
         try:
             response = await llm_client.chat.completions.create(
-                model=model, response_model=Nodes, messages=messages, context=context
+                model=model,
+                response_model=Nodes,
+                messages=messages,
+                context=context,
+                temperature=0.0,
+                max_retries=3,
             )
 
             next_data_modeler_action = "generate_data_model"
@@ -56,9 +64,7 @@ def create_generate_nodes_single_source_node(
                     .function.arguments
                 )
             )
-            print("> Received Invalid Nodes")
-            print(response)
-            print()
+
         except Exception as e:
             errors.append(str(e))
 

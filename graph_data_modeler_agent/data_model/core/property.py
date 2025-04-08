@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from pydantic import BaseModel, ValidationInfo, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 from pydantic.alias_generators import to_camel
 
 from ...resources import (
@@ -31,11 +31,18 @@ class Property(BaseModel):
         Whether the property is a unique identifier.
     """
 
-    name: str
-    type: str
-    column_mapping: str
-    alias: Optional[str] = None
-    is_key: bool = False
+    name: str = Field(..., description="The property name in Neo4j.")
+    # type: str = Field(..., description="The Python type of the property.")
+    column_mapping: str = Field(
+        ..., description="The source column that maps to the property."
+    )
+    alias: Optional[str] = Field(
+        None,
+        description="A foreign key column from another source file that maps to the property.",
+    )
+    is_key: bool = Field(
+        False, description="Whether the property is a unique identifier."
+    )
 
     @field_validator("name")
     def validate_name(cls, name: str, info: ValidationInfo) -> str:

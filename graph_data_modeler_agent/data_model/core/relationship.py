@@ -7,7 +7,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from pydantic.alias_generators import to_camel, to_pascal
+from pydantic.alias_generators import to_pascal, to_snake
 from pydantic_core import InitErrorDetails, PydanticCustomError
 
 from ...exceptions import InvalidSourceNameError
@@ -165,7 +165,7 @@ class Relationship(BaseModel):
         )
 
         if apply_neo4j_naming_conventions:
-            return to_camel(t)
+            return to_snake(t)
 
         return t
 

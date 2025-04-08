@@ -1,3 +1,4 @@
+import json
 from typing import Any, Callable, Coroutine
 
 from instructor import AsyncInstructor
@@ -31,13 +32,17 @@ def create_generate_data_model_single_source_node(
         context = GenerateDataModelContext(
             table_schema=state["table_schema"],
             valid_columns=state["table_schema"].column_names,
-            allow_duplicate_column_mappings=True,
+            allow_duplicate_column_mappings=False,
+            table_column_listings={
+                state["table_schema"].name: state["table_schema"].column_names
+            },
             enforce_uniqueness=True,
             apply_neo4j_naming_conventions=True,
             allow_parallel_relationships=False,
         )
 
         messages = create_generate_data_model_single_source_messages(state, context)
+        response = None
 
         try:
             response = await llm_client.chat.completions.create(
@@ -51,12 +56,19 @@ def create_generate_data_model_single_source_node(
 
         except InstructorRetryException as e:
             errors.extend(e.messages)
+            response = DataModel.model_construct(  # type: ignore
+                json.loads(
+                    e.last_completion.choices[-1]
+                    .message.tool_calls[-1]
+                    .function.arguments
+                )
+            )
 
         except Exception as e:
             errors.append(str(e))
 
         return {
-            "data_model": response,
+            "data_model": response or DataModel.model_construct(),
             "data_modeler_steps": ["generate_data_model"],
             "errors": errors,
             "next_data_modeler_action": next_data_modeler_action,

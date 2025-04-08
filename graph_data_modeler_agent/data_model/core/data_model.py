@@ -451,7 +451,7 @@ Relationships
                                     InitErrorDetails(
                                         type=PydanticCustomError(
                                             "duplicate_property_in_data_model_error",
-                                            f"The `Property` `column_mapping` {prop_mapping} from file {source_name} is used for {labels_or_types} in the data model. Each must use a different column as a `Property` attribute `column_mapping` instead. Find alternative `Property` `column_mapping` from the column options in the `source_name` file or remove.",
+                                            f"The `Property` `column_mapping` '{prop_mapping}' from file '{source_name}' is used for '{labels_or_types}' in the data model. Remove one of these properties.",
                                         ),
                                         loc=_parse_duplicated_property_location(
                                             context=l_or_t

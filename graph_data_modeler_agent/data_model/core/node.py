@@ -500,8 +500,8 @@ class Nodes(BaseModel):
                                 errors.append(
                                     InitErrorDetails(
                                         type=PydanticCustomError(
-                                            "duplicate_property_in_nodes_error",
-                                            f"{source_name} column {prop_mapping} may only be used once as a `Property.column_mapping` value.",
+                                            "duplicate_property_column_mapping_error",
+                                            f"{source_name} column '{prop_mapping}' may only be used once as a `Property`.`column_mapping` value. Consider removing this property from `Node` '{l_or_t[0]}'.",
                                         ),
                                         loc=_parse_duplicated_property_location(
                                             context=l_or_t
