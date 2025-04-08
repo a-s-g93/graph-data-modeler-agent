@@ -81,7 +81,7 @@ class Relationship(BaseModel):
         The relationship's unique properties.
         """
 
-        return [prop for prop in self.properties if prop.is_unique]
+        return [prop for prop in self.properties if prop.is_key]
 
     @property
     def unique_properties_column_mapping(self) -> Dict[str, str]:
@@ -90,7 +90,7 @@ class Relationship(BaseModel):
         """
 
         return {
-            prop.name: prop.column_mapping for prop in self.properties if prop.is_unique
+            prop.name: prop.column_mapping for prop in self.properties if prop.is_key
         }
 
     @property
@@ -99,7 +99,7 @@ class Relationship(BaseModel):
         The node's nonunique properties.
         """
 
-        return [prop for prop in self.properties if not prop.is_unique]
+        return [prop for prop in self.properties if not prop.is_key]
 
     @property
     def nonunique_properties_column_mapping(self) -> Dict[str, str]:
@@ -110,7 +110,7 @@ class Relationship(BaseModel):
         return {
             prop.name: prop.column_mapping
             for prop in self.properties
-            if not prop.is_unique
+            if not prop.is_key
         }
 
     @property
@@ -119,7 +119,7 @@ class Relationship(BaseModel):
         The relationship's key properties, if any.
         """
 
-        return [prop for prop in self.properties if prop.part_of_key]
+        return [prop for prop in self.properties if prop.is_key]
 
     @property
     def relationship_key_mapping(self) -> Dict[str, str]:
@@ -128,9 +128,7 @@ class Relationship(BaseModel):
         """
 
         return {
-            prop.name: prop.column_mapping
-            for prop in self.properties
-            if prop.part_of_key
+            prop.name: prop.column_mapping for prop in self.properties if prop.is_key
         }
 
     @property
@@ -142,7 +140,7 @@ class Relationship(BaseModel):
         return {
             prop.name: prop.column_mapping
             for prop in self.properties
-            if not prop.is_unique and not prop.part_of_key
+            if not prop.is_key
         }
 
     @property
@@ -156,11 +154,7 @@ class Relationship(BaseModel):
             A list with unique or relationship key property keys and CSV column values.
         """
 
-        return [
-            prop
-            for prop in self.properties
-            if not prop.is_unique and not prop.part_of_key
-        ]
+        return [prop for prop in self.properties if not prop.is_key]
 
     @field_validator("type")
     def validate_type_naming(cls, t: str, info: ValidationInfo) -> str:
@@ -204,32 +198,34 @@ class Relationship(BaseModel):
     @field_validator("source_name")
     @classmethod
     def validate_source_name(cls, source_name: str, info: ValidationInfo) -> str:
-        sources: List[str] = (
-            list(info.context.get("valid_columns", dict()).keys())
+        valid_sources: List[str] = (
+            info.context.get("valid_sources", list())
             if info.context is not None
             else list()
         )
 
         # skip for single file input
-        if len(sources) == 1:
-            return sources[0]
-        elif source_name in sources or not sources:
+        if len(valid_sources) == 1:
+            return valid_sources[0]
+        elif source_name in valid_sources or not valid_sources:
             return source_name
         else:
             raise InvalidSourceNameError(
-                f"{source_name} is not in the provided file list: {sources}."
+                f"{source_name} is not in the provided file list: {valid_sources}."
             )
 
     @model_validator(mode="after")
     def validate_property_mappings(self, info: ValidationInfo) -> "Relationship":
-        valid_columns: Dict[str, List[str]] = (
-            info.context.get("valid_columns", {}) if info.context is not None else {}
+        table_column_listings: Dict[str, List[str]] = (
+            info.context.get("table_column_listings", {})
+            if info.context is not None
+            else {}
         )
         errors: List[InitErrorDetails] = list()
 
-        if valid_columns:
+        if table_column_listings:
             for prop in self.properties:
-                if prop.column_mapping not in valid_columns.get(
+                if prop.column_mapping not in table_column_listings.get(
                     self.source_name, list()
                 ):
                     errors.append(
@@ -259,11 +255,7 @@ class Relationship(BaseModel):
 
         props = {
             x.name: (
-                x.column_mapping + " | " + x.type + " | unique"
-                if x.is_unique
-                else "" + " | nodekey"
-                if x.is_unique
-                else ""
+                x.column_mapping + " | " + x.type + " | nodekey" if x.is_key else ""
             )
             for x in self.properties
             if x.name != "csv"

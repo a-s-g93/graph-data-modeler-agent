@@ -23,6 +23,9 @@ from .property import Property
 class Node(BaseModel):
     """
     Standard Node representation.
+    A node is an entity in the database.
+    A node is defined by its label and properties.
+    A node must have at least one key property that uniquely identifies it.
 
     Attributes
     -------
@@ -34,9 +37,13 @@ class Node(BaseModel):
         The name of the file containing the node's information.
     """
 
-    label: str
-    properties: List[Property]
-    source_name: str = "file"
+    label: str = Field(..., description="The node label.")
+    properties: List[Property] = Field(
+        ..., description="The properties within the node."
+    )
+    source_name: str = Field(
+        ..., description="The name of the file containing the node's information."
+    )
 
     def __str__(self) -> str:
         return f"(:{self.label})"
@@ -105,7 +112,7 @@ class Node(BaseModel):
             A list of unique properties.
         """
 
-        return [prop for prop in self.properties if prop.is_unique]
+        return [prop for prop in self.properties if prop.is_key]
 
     @property
     def unique_properties_column_mapping(self) -> Dict[str, Union[str, List[str]]]:
@@ -119,7 +126,7 @@ class Node(BaseModel):
         """
 
         return {
-            prop.name: prop.column_mapping for prop in self.properties if prop.is_unique
+            prop.name: prop.column_mapping for prop in self.properties if prop.is_key
         }
 
     @property
@@ -133,7 +140,7 @@ class Node(BaseModel):
             A list of nonunique properties.
         """
 
-        return [prop for prop in self.properties if not prop.is_unique]
+        return [prop for prop in self.properties if not prop.is_key]
 
     @property
     def nonunique_properties_column_mapping(self) -> Dict[str, str]:
@@ -149,7 +156,7 @@ class Node(BaseModel):
         return {
             prop.name: prop.column_mapping
             for prop in self.properties
-            if not prop.is_unique
+            if not prop.is_key
         }
 
     @property
@@ -163,7 +170,7 @@ class Node(BaseModel):
             A list of the properties that make up a node key, if any.
         """
 
-        return [prop for prop in self.properties if prop.part_of_key]
+        return [prop for prop in self.properties if prop.is_key]
 
     @property
     def node_key_mapping(self) -> Dict[str, str]:
@@ -177,9 +184,7 @@ class Node(BaseModel):
         """
 
         return {
-            prop.name: prop.column_mapping
-            for prop in self.properties
-            if prop.part_of_key
+            prop.name: prop.column_mapping for prop in self.properties if prop.is_key
         }
 
     @property
@@ -196,7 +201,7 @@ class Node(BaseModel):
         return {
             prop.name: prop.column_mapping
             for prop in self.properties
-            if not prop.is_unique and not prop.part_of_key
+            if not prop.is_key
         }
 
     @property
@@ -210,11 +215,7 @@ class Node(BaseModel):
             A list with unique or node key property keys and CSV column values.
         """
 
-        return [
-            prop
-            for prop in self.properties
-            if not prop.is_unique and not prop.part_of_key
-        ]
+        return [prop for prop in self.properties if not prop.is_key]
 
     @property
     def node_key_aliases(self) -> List[Property]:
@@ -227,7 +228,7 @@ class Node(BaseModel):
             The aliases.
         """
 
-        return [p for p in self.properties if p.part_of_key and p.alias is not None]
+        return [p for p in self.properties if p.is_key and p.alias is not None]
 
     @property
     def unique_property_aliases(self) -> List[Property]:
@@ -240,7 +241,7 @@ class Node(BaseModel):
             The aliases.
         """
 
-        return [p for p in self.properties if p.is_unique and p.alias is not None]
+        return [p for p in self.properties if p.is_key and p.alias is not None]
 
     @field_validator("label")
     def validate_source_naming(cls, label: str, info: ValidationInfo) -> str:
@@ -257,20 +258,20 @@ class Node(BaseModel):
 
     @field_validator("source_name")
     def validate_source_name(cls, source_name: str, info: ValidationInfo) -> str:
-        sources: List[str] = (
-            list(info.context.get("valid_columns", dict()).keys())
+        valid_sources: List[str] = (
+            info.context.get("valid_sources", list())
             if info.context is not None
             else list()
         )
 
         # skip for single file input
-        if len(sources) == 1:
-            return sources[0]
-        elif source_name in sources or not sources:
+        if len(valid_sources) == 1:
+            return valid_sources[0]
+        elif source_name in valid_sources or not valid_sources:
             return source_name
         else:
             raise InvalidSourceNameError(
-                f"{source_name} is not in the provided file list: {sources}."
+                f"{source_name} is not in the provided file list: {valid_sources}."
             )
 
     @field_validator("properties")
@@ -283,10 +284,9 @@ class Node(BaseModel):
             else True
         )
         if enforce_uniqueness:
-            unique_properties = [prop for prop in properties if prop.is_unique]
-            node_keys = [prop for prop in properties if prop.part_of_key]
+            unique_properties = [prop for prop in properties if prop.is_key]
 
-            if len(unique_properties) == 0 and len(node_keys) < 2:
+            if len(unique_properties) == 0:
                 # keep it simple by asking only for a unique property, not to create a node key combo
                 raise NonuniqueNodeError(
                     f"`Node` must contain a unique `Property` in `properties`."
@@ -296,15 +296,17 @@ class Node(BaseModel):
 
     @model_validator(mode="after")
     def validate_property_mappings(self, info: ValidationInfo) -> "Node":
-        valid_columns: Dict[str, List[str]] = (
-            info.context.get("valid_columns", {}) if info.context is not None else {}
+        table_column_listings: Dict[str, List[str]] = (
+            info.context.get("table_column_listings", {})
+            if info.context is not None
+            else {}
         )
 
         errors: List[InitErrorDetails] = list()
 
-        if valid_columns:
+        if table_column_listings:
             for prop in self.properties:
-                if prop.column_mapping not in valid_columns.get(
+                if prop.column_mapping not in table_column_listings.get(
                     self.source_name, list()
                 ):
                     errors.append(
@@ -336,8 +338,7 @@ class Node(BaseModel):
             x.name: x.column_mapping
             + " | "
             + x.type
-            + (" | unique" if x.is_unique else "")
-            + (" | nodekey" if x.part_of_key else "")
+            + (" | nodekey" if x.is_key else "")
             for x in self.properties
         }
 

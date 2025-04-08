@@ -17,7 +17,7 @@ Create a summary of the data that will intellectually inform the graph data mode
 Identify possible node labels, relationship types, and key properties that will be used in the graph data model.
 
 <table_summary>
-{data_description}
+{table_summary}
 </table_summary>
 
 <use_cases>
@@ -25,11 +25,11 @@ Identify possible node labels, relationship types, and key properties that will 
 </use_cases>
 
 <table_stats>
-{pandas_stats}
+{table_stats}
 </table_stats>
 
 <column_descriptions>
-{features}
+{column_descriptions}
 </column_descriptions>
 
 Please return your response in json format.
@@ -40,12 +40,12 @@ Please return your response in json format.
         {
             "role": "user",
             "content": user_message.format(
-                data_description=state.get(
+                table_summary=state.get(
                     "data_description", "No data description provided."
                 ),
                 use_cases=state.get("use_cases", "No use cases provided."),
-                pandas_stats=state.get("pandas_stats", "No stats provided."),
-                features=_format_table_schema(state["table_schema"]),
+                table_stats=state.get("table_stats", "No stats provided."),
+                column_descriptions=_format_table_schema(state["table_schema"]),
             ),
         },
     ]

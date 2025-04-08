@@ -27,18 +27,15 @@ class Property(BaseModel):
         Which column the property is found under.
     alias : Optional[str]
         An optional second column that also indicates this property.
-    is_unique : bool
+    is_key : bool
         Whether the property is a unique identifier.
-    part_of_key : bool
-        Whether the property is part of a node or relationship key.
     """
 
     name: str
     type: str
     column_mapping: str
     alias: Optional[str] = None
-    is_unique: bool = False
-    part_of_key: bool = False
+    is_key: bool = False
 
     @field_validator("name")
     def validate_name(cls, name: str, info: ValidationInfo) -> str:
@@ -78,12 +75,6 @@ class Property(BaseModel):
                 f"Invalid Property type given: {v}. Must be one of: {valid_python_types}"
             )
 
-    @model_validator(mode="after")
-    def validate_is_unique_and_part_of_key(self) -> "Property":
-        if self.is_unique and self.part_of_key:
-            self.part_of_key = False
-        return self
-
     def get_schema(self, verbose: bool = True, neo4j_typing: bool = False) -> str:
         """
         Get the Property schema.
@@ -102,9 +93,7 @@ class Property(BaseModel):
         """
 
         ending = ""
-        if self.is_unique:
-            ending = " | UNIQUE"
-        elif self.part_of_key:
+        if self.is_key:
             ending = " | KEY"
 
         if verbose:

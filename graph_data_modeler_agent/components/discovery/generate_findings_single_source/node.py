@@ -9,7 +9,7 @@ from .prompts import create_generate_findings_single_source_messages
 
 
 def create_generate_findings_single_source_node(
-    llm_client: AsyncInstructor, model: str
+    llm_client: AsyncInstructor, model: str, max_retries: int = 3
 ) -> Callable[[DiscoverySingleSourceMainState], Coroutine[Any, Any, dict[str, Any]]]:
     """
     Create the generate findings node.
@@ -25,7 +25,10 @@ def create_generate_findings_single_source_node(
         messages = create_generate_findings_single_source_messages(state)
 
         response = await llm_client.chat.completions.create(
-            model=model, response_model=DiscoveryResponse, messages=messages
+            model=model,
+            response_model=DiscoveryResponse,
+            messages=messages,
+            max_retries=max_retries,
         )
 
         return {

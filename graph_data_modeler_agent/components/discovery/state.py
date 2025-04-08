@@ -15,7 +15,7 @@ class DiscoverySingleSourceInputState(TypedDict):
     data: Optional[pd.DataFrame]
     table_schema: TableSchema
     use_cases: List[str]
-    request: str
+    additional_context: str
     discovery_steps: Annotated[List[str], add]
     next_discovery_action: str
 
@@ -28,7 +28,7 @@ class DiscoverySingleSourceMainState(TypedDict):
     data: Optional[pd.DataFrame]
     table_schema: TableSchema
     use_cases: List[str]
-    request: str
+    additional_context: str
     stats: Optional[PandasStatsResponse]
     discovery: DiscoveryResponse
     errors: Annotated[List[str], add]
@@ -42,4 +42,7 @@ class DiscoverySingleSourceOutputState(TypedDict):
     """
 
     discovery: DiscoveryResponse
+    table_schema: TableSchema
+    use_cases: List[str]
+    additional_context: str
     discovery_steps: Annotated[List[str], add]
