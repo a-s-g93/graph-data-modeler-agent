@@ -165,7 +165,7 @@ class Relationship(BaseModel):
         )
 
         if apply_neo4j_naming_conventions:
-            return to_snake(t)
+            return to_snake(t).upper()
 
         return t
 

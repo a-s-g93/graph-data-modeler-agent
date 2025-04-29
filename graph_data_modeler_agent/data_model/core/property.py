@@ -12,6 +12,23 @@ from ...resources import (
 )
 from ..solutions_workbench import SolutionsWorkbenchProperty
 
+NEO4J_TYPES = {
+    "LIST",
+    "MAP",
+    "BOOLEAN",
+    "INTEGER",
+    "FLOAT",
+    "STRING",
+    "ByteArray",
+    "DATE",
+    "ZONED TIME",
+    "LOCAL TIME",
+    "ZONED DATETIME",
+    "LOCAL DATETIME",
+    "DURATION",
+    "POINT",
+}
+
 
 class Property(BaseModel):
     """
@@ -22,7 +39,7 @@ class Property(BaseModel):
     name : str
         The property name in Neo4j.
     type : str
-        The Python type of the property.
+        The Neo4j type of the property.
     column_mapping : str
         Which column the property is found under.
     alias : Optional[str]
@@ -32,7 +49,7 @@ class Property(BaseModel):
     """
 
     name: str = Field(..., description="The property name in Neo4j.")
-    # type: str = Field(..., description="The Python type of the property.")
+    type: str = Field(..., description="The Neo4j type of the property.")
     column_mapping: str = Field(
         ..., description="The source column that maps to the property."
     )
@@ -59,27 +76,19 @@ class Property(BaseModel):
 
     @field_validator("type", mode="before")
     def validate_type(cls, v: str) -> str:
-        if v.lower() == "object" or v.lower() == "string":
-            return "str"
+        if v.upper() in NEO4J_TYPES:
+            return v.upper()
+        elif v.lower() == "object" or v.lower() == "string":
+            return "STRING"
         elif "float" in v.lower():
-            return "float"
+            return "FLOAT"
         elif v.lower().startswith("int"):
-            return "int"
+            return "INTEGER"
         elif "bool" in v.lower():
-            return "bool"
-
-        valid_python_types = [a.value for a in PythonTypeEnum]
-        if v in valid_python_types:
-            return v
-        elif v.split(".")[-1] in valid_python_types:
-            return v.split(".")[-1]
-        elif v in list(TYPES_MAP_SOLUTIONS_WORKBENCH_TO_PYTHON.keys()):
-            return TYPES_MAP_SOLUTIONS_WORKBENCH_TO_PYTHON[v]
-        elif v in list(TYPES_MAP_NEO4J_TO_PYTHON.keys()):
-            return TYPES_MAP_NEO4J_TO_PYTHON[v]
+            return "BOOLEAN"
         else:
             raise ValueError(
-                f"Invalid Property type given: {v}. Must be one of: {valid_python_types}"
+                f"Invalid Property type given: {v}. Must be one of: {NEO4J_TYPES}"
             )
 
     def get_schema(self, verbose: bool = True, neo4j_typing: bool = False) -> str:
@@ -105,11 +114,11 @@ class Property(BaseModel):
 
         if verbose:
             return (
-                f"{self.name} ({self.column_mapping}): {self.type if not neo4j_typing else self.neo4j_type}"
+                f"{self.name} ({self.column_mapping}): {self.type}"
                 + ending
             )
         else:
-            return f"{self.name}: {self.type if not neo4j_typing else self.neo4j_type}"
+            return f"{self.name}: {self.type}"
 
     @property
     def neo4j_type(self) -> str:

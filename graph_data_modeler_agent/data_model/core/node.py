@@ -289,7 +289,7 @@ class Node(BaseModel):
             if len(unique_properties) == 0:
                 # keep it simple by asking only for a unique property, not to create a node key combo
                 raise NonuniqueNodeError(
-                    f"`Node` must contain a unique `Property` in `properties`."
+                    f"`Node` {info.get('label')} must contain a key `Property` in `properties` field."
                 )
 
         return properties

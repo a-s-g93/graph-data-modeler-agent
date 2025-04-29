@@ -12,9 +12,9 @@ def create_generate_findings_single_source_messages(
     system_message = "You are a professional graph data analyst. You are a core member of a team that will transform relational table data into a graph data model."
 
     user_message = """
-Please perform an anlysis of the following data table information. 
+Please perform an anlysis of the following relational data table information. 
 Create a summary of the data that will intellectually inform the graph data modeling process.
-Identify possible node labels, relationship types, and key properties that will be used in the graph data model.
+Identify all possible node labels, relationship types, and key properties that will be used in the graph data model.
 
 <table_summary>
 {table_summary}

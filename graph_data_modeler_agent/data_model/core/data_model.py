@@ -54,7 +54,7 @@ class DataModel(BaseModel):
     def get_schema(
         self,
         verbose: bool = True,
-        neo4j_typing: bool = False,
+        neo4j_typing: bool = True,
         print_schema: bool = False,
     ) -> str:
         """
@@ -64,8 +64,7 @@ class DataModel(BaseModel):
         ----------
         verbose : bool, optional
             Whether to provide more detail, by default True
-        neo4j_typing : bool, optional
-            Whether to use Neo4j types instead of Python types, by default False
+
         print_schema : bool, optional
             Whether to auto print the schema, by default False
 
@@ -226,8 +225,17 @@ Relationships
                         )
                     )
 
+                allow_relationships_between_same_node_label: bool = (
+                    info.context.get("allow_relationships_between_same_node_label")
+                    if info.context is not None
+                    else False
+                )
+
                 # validate same node label rels
-                if rel.source == rel.target:
+                if (
+                    not allow_relationships_between_same_node_label
+                    and rel.source == rel.target
+                ):
                     valid_props = [
                         prop
                         for prop in self.node_dict[rel.source].properties

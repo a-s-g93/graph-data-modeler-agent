@@ -51,6 +51,9 @@ class GenerateDataModelContext(GenerateNodesContext):
         Whether to allow a column to be mapped to many Properties
     allow_parallel_relationships : bool
         Whether to allow parallel relationships (same and opposite direction)
+    allow_relationships_between_same_node_label : bool
+        Whether to allow relationships between the same node label. For example (:Person)-[:KNOWS]->(:Person)
     """
 
     allow_parallel_relationships: bool
+    allow_relationships_between_same_node_label: bool

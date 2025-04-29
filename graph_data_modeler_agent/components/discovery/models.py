@@ -8,8 +8,19 @@ class ColumnToNodeMapping(TypedDict):
     A mapping of column names to node labels. This is used to ensure that each column is only used once in the graph data model.
     """
 
-    column_name: str
-    node_label: str
+    column_name: str = Field(..., description="The name of the column.")
+    node_label: str = Field(..., description="The label of the node.")
+    reason: str = Field(..., description="The reason for mapping the column to the node label.")
+
+
+class DiscoveryRelationship(TypedDict):
+    """
+    A mapping of relationship types to source and target node labels.
+    """
+
+    relationship_type: str = Field(..., description="The type of the relationship.")
+    source_node_label: str = Field(..., description="The label of the source node.")
+    target_node_label: str = Field(..., description="The label of the target node.")
 
 
 class DiscoveryResponse(BaseModel):
@@ -26,8 +37,8 @@ Why is this information important to include in the graph data model?""",
     possible_node_labels: List[str] = Field(
         ..., description="The possible node labels identified in the data."
     )
-    possible_relationship_types: List[str] = Field(
-        ..., description="The possible relationship types identified in the data."
+    possible_relationships: List[DiscoveryRelationship] = Field(
+        ..., description="The possible relationships identified in the data."
     )
     possible_property_keys: List[str] = Field(
         ...,
