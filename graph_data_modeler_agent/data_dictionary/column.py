@@ -58,6 +58,18 @@ class Column(BaseModel, use_enum_values=True):
                     )
         return aliases
 
+    @field_validator("python_type")
+    def validate_python_type(
+        cls, python_type: Optional[str], info: ValidationInfo
+    ) -> Optional[str]:
+        if python_type is not None:
+            valid_python_types = ["str", "int", "float", "bool", "date", "datetime", "list", "dict"]
+            if python_type.lower() not in valid_python_types:
+                raise ValueError(
+                    f"Invalid Python type: {python_type}. Must be one of: {valid_python_types}"
+                )
+        return python_type
+
     @model_validator(mode="after")
     def validate_model(self) -> "Column":
         if self.primary_key:

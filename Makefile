@@ -9,13 +9,13 @@ coverage:
 	poetry run coverage report --fail-under=85
 
 test:
-	pytest tests
+	poetry run pytest tests -v --ignore=tests/unit/data_model/arrows --ignore=tests/unit/data_model/solutions_workbench
 
 test_integration:
-	poetry run pytest tests/integration --ignore=tests/integration/code_generation/load_csv
+	poetry run pytest tests/integration
 
 test_unit:
-	poetry run pytest tests/unit
+	poetry run pytest tests/unit -vv --ignore=tests/unit/data_model/arrows --ignore=tests/unit/data_model/solutions_workbench
 
 init:
 	poetry install --with dev

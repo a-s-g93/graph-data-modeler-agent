@@ -62,6 +62,9 @@ show-fixes = true
 [tool.coverage.paths]
 source = ["graph_data_modeler_agent"]
 
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
