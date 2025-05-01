@@ -86,6 +86,10 @@ class Property(BaseModel):
             return "INTEGER"
         elif "bool" in v.lower():
             return "BOOLEAN"
+        elif v.lower().startswith("list"):
+            return "LIST"
+        elif v.lower() == "date" or v.lower() == "datetime":
+            return "DATE"
         else:
             raise ValueError(
                 f"Invalid Property type given: {v}. Must be one of: {NEO4J_TYPES}"
@@ -148,22 +152,41 @@ class Property(BaseModel):
                 alias = None
 
             python_type = prop_props[1]
-            is_unique = "unique" in prop_props
-            node_key = "nodekey" in prop_props
+            # Convert to a Neo4j type if it's a Python type
+            if python_type in TYPES_MAP_PYTHON_TO_NEO4J:
+                neo4j_type = TYPES_MAP_PYTHON_TO_NEO4J[python_type]
+            else:
+                # Handle common Python types not in the mapping
+                if python_type.lower() == "str" or python_type.lower() == "string":
+                    neo4j_type = "STRING"
+                elif python_type.lower() == "int" or python_type.lower() == "integer":
+                    neo4j_type = "INTEGER"
+                elif python_type.lower() == "float":
+                    neo4j_type = "FLOAT"
+                elif python_type.lower() == "bool" or python_type.lower() == "boolean":
+                    neo4j_type = "BOOLEAN"
+                elif python_type.lower().startswith("list"):
+                    neo4j_type = "LIST"
+                elif python_type.lower() == "dict" or python_type.lower() == "map":
+                    neo4j_type = "MAP"
+                elif python_type.lower() == "date" or python_type.lower() == "datetime":
+                    neo4j_type = "DATE"
+                else:
+                    neo4j_type = "STRING"  # Default to string
+            
+            is_key = "unique" in prop_props or "nodekey" in prop_props
         else:
             column_mapping = list(arrows_property.values())[0]
-            python_type = "unknown"
+            neo4j_type = "STRING"  # Default to string for unknown types
             alias = None
-            is_unique = False
-            node_key = False
+            is_key = False
 
         return cls(
             name=list(arrows_property.keys())[0],
             column_mapping=column_mapping,
             alias=alias,
-            type=python_type,
-            is_unique=is_unique,
-            part_of_key=node_key,
+            type=neo4j_type,
+            is_key=is_key,
         )
 
     @classmethod
@@ -191,8 +214,7 @@ class Property(BaseModel):
             type=TYPES_MAP_SOLUTIONS_WORKBENCH_TO_PYTHON[
                 solutions_workbench_property.datatype
             ],
-            is_unique=solutions_workbench_property.hasUniqueConstraint,
-            part_of_key=solutions_workbench_property.isPartOfKey,
+            is_key=solutions_workbench_property.hasUniqueConstraint or solutions_workbench_property.isPartOfKey,
         )
 
     def to_solutions_workbench(self) -> "SolutionsWorkbenchProperty":
@@ -209,9 +231,9 @@ class Property(BaseModel):
             name=self.name,
             datatype=TYPES_MAP_PYTHON_TO_SOLUTIONS_WORKBENCH[self.type],
             referenceData=reference_data,
-            isPartOfKey=self.part_of_key,
-            isIndexed=self.is_unique,
-            mustExist=self.part_of_key,
-            hasUniqueConstraint=self.is_unique,
+            isPartOfKey=self.is_key,
+            isIndexed=self.is_key,
+            mustExist=self.is_key,
+            hasUniqueConstraint=self.is_key,
             isArray=True if self.type.startswith("List") else False,
         )

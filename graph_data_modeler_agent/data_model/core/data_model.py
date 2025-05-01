@@ -217,7 +217,7 @@ Relationships
                         InitErrorDetails(
                             type=PydanticCustomError(
                                 "missing_target_node_error",
-                                f"The `Relationship` {rel.type} has the target {rel.target} which does not exist in generated `Node` labels.",
+                                f"The `Relationship` {rel.type} has the target {rel.target} which does not exist in generated `Node` labels {self.node_labels}",
                             ),
                             loc=("relationships",),
                             input=rel,

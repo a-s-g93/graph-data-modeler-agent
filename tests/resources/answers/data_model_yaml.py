@@ -5,46 +5,48 @@ data_model_dict = {
             "properties": [
                 {
                     "name": "prop1",
-                    "type": "str",
+                    "type": "STRING",
                     "column_mapping": "prop_1",
-                    "is_unique": True,
+                    "is_key": True,
                 },
                 {
                     "name": "prop2",
-                    "type": "int",
+                    "type": "INTEGER",
                     "column_mapping": "prop_2",
-                    "is_unique": False,
+                    "is_key": False,
                 },
                 {
                     "name": "prop3",
-                    "type": "float",
+                    "type": "FLOAT",
                     "column_mapping": "prop_3",
-                    "is_unique": False,
+                    "is_key": False,
                 },
             ],
+            "source_name": "file.csv",
         },
         {
             "label": "NodeB",
             "properties": [
                 {
                     "name": "prop4",
-                    "type": "str",
+                    "type": "STRING",
                     "column_mapping": "prop_4",
-                    "is_unique": True,
+                    "is_key": True,
                 },
                 {
                     "name": "prop5",
-                    "type": "int",
+                    "type": "INTEGER",
                     "column_mapping": "prop_5",
-                    "is_unique": False,
+                    "is_key": False,
                 },
                 {
                     "name": "prop6",
-                    "type": "float",
+                    "type": "FLOAT",
                     "column_mapping": "prop_6",
-                    "is_unique": False,
+                    "is_key": False,
                 },
             ],
+            "source_name": "file.csv",
         },
     ],
     "relationships": [
@@ -53,9 +55,9 @@ data_model_dict = {
             "properties": [
                 {
                     "name": "prop7",
-                    "type": "float",
+                    "type": "FLOAT",
                     "column_mapping": "prop_7",
-                    "is_unique": False,
+                    "is_key": False,
                 }
             ],
             "source": "NodeA",
@@ -69,54 +71,54 @@ data_model_yaml = """nodes:
   properties:
   - alias: null
     column_mapping: prop_1
-    is_unique: true
+    is_key: true
     name: prop1
     part_of_key: false
-    type: str
+    type: STRING
   - alias: null
     column_mapping: prop_2
-    is_unique: false
+    is_key: false
     name: prop2
     part_of_key: false
-    type: int
+    type: INTEGER
   - alias: null
     column_mapping: prop_3
-    is_unique: false
+    is_key: false
     name: prop3
     part_of_key: false
-    type: float
-  source_name: file
+    type: FLOAT
+  source_name: file.csv
 - label: NodeB
   properties:
   - alias: null
     column_mapping: prop_4
-    is_unique: true
+    is_key: true
     name: prop4
     part_of_key: false
-    type: str
+    type: STRING
   - alias: null
     column_mapping: prop_5
-    is_unique: false
+    is_key: false
     name: prop5
     part_of_key: false
-    type: int
+    type: INTEGER
   - alias: null
     column_mapping: prop_6
-    is_unique: false
+    is_key: false
     name: prop6
     part_of_key: false
-    type: float
-  source_name: file
+    type: FLOAT
+  source_name: file.csv
 relationships:
 - properties:
   - alias: null
     column_mapping: prop_7
-    is_unique: false
+    is_key: false
     name: prop7
     part_of_key: false
-    type: float
+    type: FLOAT
   source: NodeA
-  source_name: file
+  source_name: file.csv
   target: NodeB
   type: RELATIONSHIP_AB
 """

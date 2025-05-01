@@ -177,20 +177,20 @@ class Relationship(BaseModel):
             else True
         )
 
-        if apply_neo4j_naming_conventions:
+        if apply_neo4j_naming_conventions and not source[0].isupper():
             return to_pascal(source)
 
         return source
 
     @field_validator("target")
-    def validate_type(cls, target: str, info: ValidationInfo) -> str:
+    def validate_target_naming(cls, target: str, info: ValidationInfo) -> str:
         apply_neo4j_naming_conventions: bool = (
             info.context.get("apply_neo4j_naming_conventions", True)
             if info.context is not None
             else True
         )
 
-        if apply_neo4j_naming_conventions:
+        if apply_neo4j_naming_conventions and not target[0].isupper():
             return to_pascal(target)
 
         return target
@@ -216,11 +216,23 @@ class Relationship(BaseModel):
 
     @model_validator(mode="after")
     def validate_property_mappings(self, info: ValidationInfo) -> "Relationship":
+        # Use table_column_listings if provided in context
         table_column_listings: Dict[str, List[str]] = (
             info.context.get("table_column_listings", {})
             if info.context is not None
             else {}
         )
+        
+        # If table_column_listings is not provided but valid_columns is, use valid_columns
+        valid_columns: Dict[str, List[str]] = (
+            info.context.get("valid_columns", {})
+            if info.context is not None
+            else {}
+        )
+        
+        if not table_column_listings and valid_columns:
+            table_column_listings = valid_columns
+        
         errors: List[InitErrorDetails] = list()
 
         if table_column_listings:

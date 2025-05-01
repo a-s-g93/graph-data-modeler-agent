@@ -8,7 +8,7 @@ from pydantic import (
     field_validator,
     model_validator,
 )
-from pydantic.alias_generators import to_pascal
+from pydantic.alias_generators import to_pascal, to_snake
 from pydantic_core import InitErrorDetails, PydanticCustomError
 
 from ...exceptions import (
@@ -251,8 +251,8 @@ class Node(BaseModel):
             else True
         )
 
-        if apply_neo4j_naming_conventions:
-            return to_pascal(label)
+        if apply_neo4j_naming_conventions and not label[0].isupper():
+            return to_pascal(to_snake(label.lower()))
 
         return label
 
@@ -289,19 +289,30 @@ class Node(BaseModel):
             if len(unique_properties) == 0:
                 # keep it simple by asking only for a unique property, not to create a node key combo
                 raise NonuniqueNodeError(
-                    f"`Node` {info.get('label')} must contain a key `Property` in `properties` field."
+                    f"`Node` {info.data.get('label')} must contain a key `Property` in `properties` field."
                 )
 
         return properties
 
     @model_validator(mode="after")
     def validate_property_mappings(self, info: ValidationInfo) -> "Node":
+        # Use table_column_listings if provided in context
         table_column_listings: Dict[str, List[str]] = (
             info.context.get("table_column_listings", {})
             if info.context is not None
             else {}
         )
-
+        
+        # If table_column_listings is not provided but valid_columns is, use valid_columns
+        valid_columns: Dict[str, List[str]] = (
+            info.context.get("valid_columns", {})
+            if info.context is not None
+            else {}
+        )
+        
+        if not table_column_listings and valid_columns:
+            table_column_listings = valid_columns
+        
         errors: List[InitErrorDetails] = list()
 
         if table_column_listings:
